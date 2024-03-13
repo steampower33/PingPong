@@ -22,41 +22,58 @@ Network::Network() {
     std::cout << "Connected to the server!" << std::endl;
 }
 
-void Network::sendData(int y) {
-    char data[3];
+void Network::sendData(int playerY, Ball& ball) {
+    char buffer[4];
 
-
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
-        data[2 - i] = '0' + y % 10;
-        y /= 10;
+        if (i != 3) {
+            buffer[2 - i] = '0' + playerY % 10;
+            playerY /= 10;
+        }
     }
+    buffer[3] = '0' + ball.GetCollisionDetected();
 
-    send(clientSocket, data, 3, 0);
+    send(clientSocket, buffer, 4, 0);
 }
 
-float Network::recvData(int dataSize) {
-    memset(buffer, 0, dataSize);
-    // 서버로부터 데이터 받기
+int Network::recvPositionData(int dataSize) {
+    // 서버로부터 상대 바 위치 받기
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
     if (bytesReceived <= 0) {
         std::cout << "Connection closed by the server." << std::endl;
-        return 0;
+        exit(1);
     }
-    buffer[bytesReceived] = '\0';
 
-    float number = 0;
-    for (int i = 0; i < dataSize; i++) {
-        if (buffer[i] >= '0' && buffer[i] <= '9') {
-            number = number * 10 + (buffer[i] - '0');
-        }
-        else {
-            // 숫자가 아닌 문자가 포함되어 있으면 0을 반환
-            return 0;
-        }
+    int position = buffer[0] - '0';
+    return position;
+}
+
+void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
+    bytesReceived = recv(clientSocket, buffer, dataSize, 0);
+    for (int i = 0; i < 10; i++) {
+        std::cout << buffer[i];
     }
-    std::cout << number << std::endl;
-    return number;
+    std::cout << std::endl;
+    if (bytesReceived <= 0) {
+        std::cout << "Connection closed by the server." << std::endl;
+        exit(1);
+    }
+
+    int enemyY = 0;
+    int ballX = 0;
+    int ballY = 0;
+    for (int i = 0; i < 4; i++) {
+        if (i != 3) {
+            enemyY = enemyY * 10 + (buffer[i] - '0');
+            ballY = ballY * 10 + (buffer[7 + i] - '0');
+        }
+        ballX = ballX * 10 + (buffer[3 + i] - '0');
+    }
+    enemy.SetY(enemyY);
+    ball.SetX(ballX);
+    ball.SetY(ballY);
+    std::cout << "enemyY: " << enemyY << "ballX: " << ballX << "ballY:" << ballY << std::endl;
 }
 
 Network::~Network() {

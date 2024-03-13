@@ -1,7 +1,4 @@
 #pragma once
-#ifndef ENEMY_H
-#define ENEMY_H
-
 #include <iostream>
 
 class Enemy {
@@ -23,9 +20,8 @@ public:
     void SetLeftPosition();
     void SetRightPosition();
     float GetX();
+    void SetY(int num);
     float GetY();
     float GetWidth();
     float GetHeight();
 };
-
-#endif

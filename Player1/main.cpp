@@ -7,12 +7,12 @@ using namespace std;
 int main() {
     cout << "Starting the game" << endl;
     Network network;
-    Game game(static_cast<int>(network.recvData(1)));
+    Game game(network.recvPositionData(1));
 
     while (game.IsWindowOpen() == false) {
         game.DrawGame();
-        network.sendData(game.GetPlayer().GetY());
-        game.GetEnemy().Update(network.recvData(3));
+        network.sendData(game.GetPlayer().GetY(), game.GetBall());
+        network.recvData(10, game.GetBall(), game.GetEnemy());
     }
     return 0;
 }

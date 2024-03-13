@@ -48,7 +48,7 @@ void Ball::ResetBall()
     speed_y *= speed_choices[GetRandomValue(0, 1)];
 }
 
-float Ball::GetX()
+int Ball::GetX()
 {
     return x;
 }
@@ -58,7 +58,7 @@ void Ball::SetX(int num)
     x = num;
 }
 
-float Ball::GetY()
+int Ball::GetY()
 {
     return y;
 }
@@ -101,12 +101,4 @@ int Ball::GetPlayerScore()
 int Ball::GetCpuScore()
 {
     return cpu_score;
-}
-
-void Ball::SetCollisionDetected(int detected) {
-    isCollisionDetected = detected;
-}
-
-int Ball::GetCollisionDetected() {
-    return isCollisionDetected;
 }

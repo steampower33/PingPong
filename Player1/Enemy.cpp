@@ -63,6 +63,11 @@ float Enemy::GetX()
     return x;
 }
 
+void Enemy::SetY(int num)
+{
+    y = num;
+}
+
 float Enemy::GetY()
 {
     return y;

@@ -15,17 +15,20 @@ void Game::DrawGame()
 
     // Updating
     ball.Update();
-    player.Update();
     enemy.Update(enemy.GetY());
+    player.Update();
 
+    ball.SetCollisionDetected(0);
     // Checking for collisions
     if (CheckCollisionCircleRec(Vector2{ ball.GetX(), ball.GetY() }, ball.GetRadius(), Rectangle{ player.GetX(), player.GetY(), player.GetWidth(), player.GetHeight() }))
     {
         ball.SetSpeedX(ball.GetSpeedX() * -1);
+        ball.SetCollisionDetected(1);
     }
     if (CheckCollisionCircleRec(Vector2{ ball.GetX(), ball.GetY() }, ball.GetRadius(), Rectangle{ enemy.GetX(), enemy.GetY(), enemy.GetWidth(), enemy.GetHeight() }))
     {
         ball.SetSpeedX(ball.GetSpeedX() * -1);
+        ball.SetCollisionDetected(1);
     }
 
     // Drawing
@@ -48,6 +51,10 @@ bool Game::IsWindowOpen()
     return WindowShouldClose();
 }
 
+Ball& Game::GetBall()
+{
+    return ball;
+}
 
 Player& Game::GetPlayer()
 {

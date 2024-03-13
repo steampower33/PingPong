@@ -2,6 +2,6 @@
 
 int main() {
     Network Network;
-    Network.AcceptClient();
+    Network.AcceptPlayer();
     return 0;
 }

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef PLAYER_H
-#define PLAYER_H
 
 #include <iostream>
 
@@ -27,5 +25,3 @@ public:
     void SetLeftPosition();
     void SetRightPosition();
 };
-
-#endif

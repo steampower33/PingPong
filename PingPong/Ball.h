@@ -5,12 +5,11 @@ class Ball {
 private:
     const int screen_width = 1280;
     const int screen_height = 800;
-    float x, y;
+    int x, y;
     int speed_x, speed_y;
     int radius;
     int player_score = 0;
     int cpu_score = 0;
-    int isCollisionDetected;
     Ball(const Ball& other);
     Ball& operator=(const Ball& other);
 public:
@@ -19,9 +18,9 @@ public:
     void Draw();
     void Update();
     void ResetBall();
-    float GetX();
+    int GetX();
     void SetX(int num);
-    float GetY();
+    int GetY();
     void SetY(int num);
     int GetSpeedX();
     void SetSpeedX(int num);
@@ -30,6 +29,4 @@ public:
     int GetRadius();
     int GetPlayerScore();
     int GetCpuScore();
-    void SetCollisionDetected(int detected);
-    int GetCollisionDetected();
 };

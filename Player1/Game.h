@@ -1,6 +1,4 @@
 #pragma once
-#ifndef GAME_H
-#define GAME_H
 
 #include <iostream>
 #include "Ball.h"
@@ -23,8 +21,7 @@ public:
     ~Game();
     void DrawGame();
     bool IsWindowOpen();
+    Ball& GetBall();
     Player& GetPlayer();
     Enemy& GetEnemy();
 };
-
-#endif
