@@ -1,7 +1,10 @@
 ﻿#include "Network.h"
 
 int main() {
-    Network Network;
-    Network.AcceptPlayer();
+    Network network;
+    while (1)
+    {
+        network.HandleEvent();
+    }
     return 0;
 }

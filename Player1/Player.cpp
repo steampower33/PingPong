@@ -5,11 +5,11 @@ Player::Player() {}
 
 Player::Player(int isLeftRight)
 {
-    if (isLeftRight == 0)
+    if (isLeftRight == 1)
     {
         SetLeftPosition();
     }
-    else if (isLeftRight == 1)
+    else if (isLeftRight == 2)
     {
         SetRightPosition();
     }

@@ -32,13 +32,12 @@ void Network::sendData(int playerY, Ball& ball) {
             playerY /= 10;
         }
     }
-    buffer[3] = '0' + ball.GetCollisionDetected();
+    //buffer[3] = '0' + ball.GetCollisionDetected();
 
-    send(clientSocket, buffer, 4, 0);
+    send(clientSocket, buffer, 3, 0);
 }
 
 int Network::recvPositionData(int dataSize) {
-    // 서버로부터 상대 바 위치 받기
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
     if (bytesReceived <= 0) {
         std::cout << "Connection closed by the server." << std::endl;
@@ -51,10 +50,6 @@ int Network::recvPositionData(int dataSize) {
 
 void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
-    for (int i = 0; i < 10; i++) {
-        std::cout << buffer[i];
-    }
-    std::cout << std::endl;
     if (bytesReceived <= 0) {
         std::cout << "Connection closed by the server." << std::endl;
         exit(1);
@@ -66,14 +61,14 @@ void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
     for (int i = 0; i < 4; i++) {
         if (i != 3) {
             enemyY = enemyY * 10 + (buffer[i] - '0');
-            ballY = ballY * 10 + (buffer[7 + i] - '0');
+            //ballY = ballY * 10 + (buffer[7 + i] - '0');
         }
-        ballX = ballX * 10 + (buffer[3 + i] - '0');
+        //ballX = ballX * 10 + (buffer[3 + i] - '0');
     }
     enemy.SetY(enemyY);
-    ball.SetX(ballX);
-    ball.SetY(ballY);
-    std::cout << "enemyY: " << enemyY << "ballX: " << ballX << "ballY:" << ballY << std::endl;
+    //ball.SetX(ballX);
+    //ball.SetY(ballY);
+    std::cout << "enemyY: " << enemyY << std::endl;
 }
 
 Network::~Network() {

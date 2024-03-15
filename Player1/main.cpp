@@ -12,7 +12,7 @@ int main() {
     while (game.IsWindowOpen() == false) {
         game.DrawGame();
         network.sendData(game.GetPlayer().GetY(), game.GetBall());
-        network.recvData(10, game.GetBall(), game.GetEnemy());
+        network.recvData(3, game.GetBall(), game.GetEnemy());
     }
     return 0;
 }

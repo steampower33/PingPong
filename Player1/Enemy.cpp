@@ -5,11 +5,11 @@ Enemy::Enemy() {}
 
 Enemy::Enemy(int isLeftRight)
 {
-    if (isLeftRight == 1)
+    if (isLeftRight == 2)
     {
         SetLeftPosition();
     }
-    else if (isLeftRight == 0)
+    else if (isLeftRight == 1)
     {
         SetRightPosition();
     }

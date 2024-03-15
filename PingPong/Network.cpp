@@ -1,116 +1,130 @@
 #include "Network.h"
 
-int Network::numPlayers = 0;
-Network::PlayerInfo Network::players[MAX_PLAYERS];
-std::mutex Network::playersMutex;
-std::mutex Network::ballMutex;
-
 Network::Network() {
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+		ErrorHandling("WSAStartup() error!");
 
-    // 소켓 생성
-    listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	hServSock = socket(PF_INET, SOCK_STREAM, 0);
+	memset(&servAdr, 0, sizeof(servAdr));
+	servAdr.sin_family = AF_INET;
+	servAdr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servAdr.sin_port = htons(PORT);
 
-    // 바인딩
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT);
-    bind(listenSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+	if (bind(hServSock, (SOCKADDR*)&servAdr, sizeof(servAdr)) == SOCKET_ERROR)
+		ErrorHandling("bind() error");
 
-    // 수신 대기
-    listen(listenSocket, SOMAXCONN);
-    std::cout << "Server started on port " << PORT << std::endl;
+	if (listen(hServSock, 5) == SOCKET_ERROR)
+		ErrorHandling("listen() error");
+
+	newEvent = WSACreateEvent();
+	if (WSAEventSelect(hServSock, newEvent, FD_ACCEPT) == SOCKET_ERROR)
+		ErrorHandling("WSAEventSelect() error");
+
+	hSockArr[numOfClntSock] = hServSock;
+	hEventArr[numOfClntSock] = newEvent;
+	numOfClntSock++;
 }
 
 Network::~Network() {
-    // 소켓 해제
-    closesocket(listenSocket);
-    WSACleanup();
+	WSACleanup();
 }
 
-void Network::AcceptPlayer() {
-    char isLeftRight[1];
-    int leftRight = 0;
-    while (true) {
-        // 플레이어 연결 수락
-        sockaddr_in clientAddr;
-        int clientAddrSize = sizeof(clientAddr);
-        SOCKET clientSocket = accept(listenSocket, (sockaddr*)&clientAddr, &clientAddrSize);
+void Network::HandleEvent() {
+	posInfo = WSAWaitForMultipleEvents(
+		numOfClntSock, hEventArr, FALSE, WSA_INFINITE, FALSE);
+	startIdx = posInfo - WSA_WAIT_EVENT_0;
 
-        // 최대 플레이어 수 초과 시 거부
-        if (numPlayers >= MAX_PLAYERS) {
-            closesocket(clientSocket);
-            continue;
-        }
+	for (i = startIdx; i < numOfClntSock; i++)
+	{
+		int sigEventIdx =
+			WSAWaitForMultipleEvents(1, &hEventArr[i], TRUE, 0, FALSE);
+		if ((sigEventIdx == WSA_WAIT_FAILED || sigEventIdx == WSA_WAIT_TIMEOUT))
+		{
+			continue;
+		}
+		else
+		{
+			sigEventIdx = i;
+			WSAEnumNetworkEvents(
+				hSockArr[sigEventIdx], hEventArr[sigEventIdx], &netEvents);
+			if (netEvents.lNetworkEvents & FD_ACCEPT)
+			{
+				if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0)
+				{
+					puts("Accept Error");
+					break;
+				}
+				clntAdrLen = sizeof(clntAdr);
+				hClntSock = accept(
+					hSockArr[sigEventIdx], (SOCKADDR*)&clntAdr, &clntAdrLen);
+				newEvent = WSACreateEvent();
+				WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
-        // 플레이어 정보 저장
-        players[numPlayers].socket = clientSocket;
-        players[numPlayers].playerID = numPlayers;
+				hEventArr[numOfClntSock] = newEvent;
+				hSockArr[numOfClntSock] = hClntSock;
 
-        isLeftRight[0] = '0' + leftRight++;
-        send(players[numPlayers].socket, isLeftRight, 1, 0);
+				char p[1];
+				p[0] = '0' + numOfClntSock;
+				send(hSockArr[numOfClntSock], p, 1, 0);
+				numOfClntSock++;
+				puts("connected new client...");
+			}
 
-        // 스레드 생성
-        _beginthreadex(NULL, 0, &PlayerThread, &players[numPlayers], 0, NULL);
-        numPlayers++;
+			if (netEvents.lNetworkEvents & FD_READ)
+			{
+				if (netEvents.iErrorCode[FD_READ_BIT] != 0)
+				{
+					puts("Read Error");
+					break;
+				}
+				strLen = recv(hSockArr[sigEventIdx], msg, sizeof(msg), 0);
+				int recvValue = 0;
+				for (int i = 0; i < 3; i++)
+					recvValue = recvValue * 10 + (msg[i] - '0');
+				pos[sigEventIdx] = recvValue;
 
-        std::cout << "New client connected!" << std::endl;
-    }
+				int sendValue = (sigEventIdx == 1) ? pos[2] : pos[1];
+				for (int i = 0; i < 3; i++)
+				{
+					msg[2 - i] = '0' + sendValue % 10;
+					sendValue /= 10;
+				}
+				send(hSockArr[sigEventIdx], msg, strLen, 0);
+			}
+
+			if (netEvents.lNetworkEvents & FD_CLOSE)
+			{
+				if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
+				{
+					puts("Close Error");
+					break;
+				}
+				WSACloseEvent(hEventArr[sigEventIdx]);
+				closesocket(hSockArr[sigEventIdx]);
+
+				numOfClntSock--;
+				CompressSockets(hSockArr, sigEventIdx, numOfClntSock);
+				CompressEvents(hEventArr, sigEventIdx, numOfClntSock);
+			}
+		}
+	}
 }
 
-unsigned __stdcall Network::PlayerThread(void* data) {
-    PlayerInfo* player = (PlayerInfo*)data;
-    char buffer[10];
-    int bytesReceived;
-    Ball ball;
-
-    while (true) {
-
-        // 플레이어로부터 데이터 받기
-        bytesReceived = recv(player->socket, buffer, 4, 0);
-        if (bytesReceived <= 0) {
-            // 연결 끊김 처리
-            break;
-        }
-
-        if (buffer[3] - '0' == 1)
-            ball.SetSpeedX(ball.GetSpeedX() * -1);
-
-        ball.Update();
-        
-        int x = ball.GetX();
-        int y = ball.GetY();
-
-        for (int i = 0; i < 4; i++) {
-            buffer[6 - i] = '0' + x % 10;
-            x /= 10;
-            if (i != 3) {
-                buffer[9 - i] = '0' + y % 10;
-                y /= 10;
-            }
-        }
-        std::cout << player->playerID << ": ";
-        for (int i = 0; i < 10; i++) {
-            std::cout << buffer[i];
-        }
-        std::cout << std::endl;
-
-        // 플레이어 정보를 모든 클라이언트에 전송
-        // 상대방 플레이어 클라이언트 -> 지금 플레이어 위치를 갱신해서 전달
-        {
-            std::lock_guard<std::mutex> lock(playersMutex);
-
-            // 상대방 플레이어에게 데이터 전송
-            int otherIndex = (player->playerID == 0) ? 1 : 0;
-            send(player[otherIndex].socket, buffer, 10, 0);
-        }
-    }
-
-    // 플레이어 연결 종료
-    closesocket(player->socket);
-    players[player->playerID].socket = INVALID_SOCKET;
-    numPlayers--;
-
-    _endthreadex(0);
-    return 0;
+void Network::CompressSockets(SOCKET hSockArr[], int idx, int total)
+{
+	int i;
+	for (i = idx; i < total; i++)
+		hSockArr[i] = hSockArr[i + 1];
+}
+void Network::CompressEvents(WSAEVENT hEventArr[], int idx, int total)
+{
+	int i;
+	for (i = idx; i < total; i++)
+		hEventArr[i] = hEventArr[i + 1];
+}
+void Network::ErrorHandling(const char* msg)
+{
+	fputs(msg, stderr);
+	fputc('\n', stderr);
+	exit(1);
 }
