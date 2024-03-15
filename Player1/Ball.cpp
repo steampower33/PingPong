@@ -26,15 +26,15 @@ void Ball::Update()
     {
         speed_y *= -1;
     }
-    if (x + radius >= GetScreenWidth()) // Cpu Wins
+    if (x + radius >= GetScreenWidth())
     {
         cpu_score++;
-        ResetBall();
+        speed_x *= -1;
     }
     if (x - radius <= 0)
     {
         player_score++;
-        ResetBall();
+        speed_x *= -1;
     }
 }
 
