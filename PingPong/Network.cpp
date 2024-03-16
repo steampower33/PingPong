@@ -156,7 +156,7 @@ void Network::CompressEvents(WSAEVENT hEventArr[], int idx, int total)
 void Network::ErrorHandling(const char* buf)
 {
 	std::cerr << buf << std::endl;
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 int Network::GetPosY1()

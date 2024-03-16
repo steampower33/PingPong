@@ -13,11 +13,8 @@ void Game::DrawGame()
 {
     BeginDrawing();
 
-    // Updating
-    enemy.Update(enemy.GetY());
     player.Update();
 
-    // Drawing
     ClearBackground(BLACK);
     DrawRectangle(screen_width / 2, 0, screen_width / 2, screen_height, BLACK);
     DrawCircle(screen_width / 2, screen_height / 2, 150, BLACK);
@@ -29,6 +26,7 @@ void Game::DrawGame()
 
     DrawText(TextFormat("%i", ball.GetLeftScore()), screen_width / 4 - 20, 20, 80, WHITE);
     DrawText(TextFormat("%i", ball.GetRightScore()), 3 * screen_width / 4 - 20, 20, 80, WHITE);
+
     EndDrawing();
 }
 

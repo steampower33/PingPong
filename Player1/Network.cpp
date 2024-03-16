@@ -1,33 +1,32 @@
 #include "Network.h"
 
 Network::Network() {
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    // WinSock 초기화
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+        ErrorHandling("WSAStartup failed.");
 
     // 소켓 생성
     clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (clientSocket == INVALID_SOCKET)
+        ErrorHandling("Failed to create socket.");
 
     // 서버 주소 설정
     serverAddr.sin_family = AF_INET;
-    inet_pton(AF_INET, SERVER_IP, &serverAddr.sin_addr);
-    serverAddr.sin_port = htons(SERVER_PORT);
+    if (inet_pton(AF_INET, kServerIp, &serverAddr.sin_addr) != 1)
+        ErrorHandling("Invalid address format.");
+    serverAddr.sin_port = htons(kServerPort);
 
     // 서버에 연결
-    if (connect(clientSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        std::cout << "Failed to connect to the server." << std::endl;
-        closesocket(clientSocket);
-        WSACleanup();
-        exit(1);
-    }
+    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddr), sizeof(serverAddr)) == SOCKET_ERROR)
+        ErrorHandling("Failed to connect to the server.");
 
     std::cout << "Connected to the server!" << std::endl;
 }
 
 int Network::recvPositionData(int dataSize) {
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
-    if (bytesReceived <= 0) {
-        std::cout << "Connection closed by the server." << std::endl;
-        exit(1);
-    }
+    if (bytesReceived <= 0)
+        ErrorHandling("Connection closed by the server.");
 
     int position = buffer[0] - '0';
     return position;
@@ -48,10 +47,8 @@ void Network::sendData(int playerY, Ball& ball) {
 
 void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
-    if (bytesReceived <= 0) {
-        std::cout << "Connection closed by the server." << std::endl;
-        exit(1);
-    }
+    if (bytesReceived <= 0)
+        ErrorHandling("Connection closed by the server.");
 
     int enemyY = 0;
     int ballX = 0;
@@ -74,4 +71,10 @@ Network::~Network() {
     // 소켓 해제
     closesocket(clientSocket);
     WSACleanup();
+}
+
+void Network::ErrorHandling(const char* buf)
+{
+    std::cerr << buf << std::endl;
+    exit(EXIT_FAILURE);
 }

@@ -6,8 +6,6 @@ Ball::Ball()
     radius = 20;
     x = screen_width / 2;
     y = screen_height / 2;
-    speed_x = 7;
-    speed_y = 7;
 }
 
 Ball::~Ball() {}
@@ -84,7 +82,7 @@ void Ball::SetRightScore(int score)
 
 int Ball::IsGameOver()
 {
-    if (leftScore == 1 || rightScore == 1)
+    if (leftScore == 3 || rightScore == 3)
         return 1;
     else
         return 0;
