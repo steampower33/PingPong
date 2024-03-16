@@ -8,7 +8,7 @@ Network::Network() {
 	memset(&servAdr, 0, sizeof(servAdr));
 	servAdr.sin_family = AF_INET;
 	servAdr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servAdr.sin_port = htons(PORT);
+	servAdr.sin_port = htons(kPort);
 
 	if (bind(hServSock, (SOCKADDR*)&servAdr, sizeof(servAdr)) == SOCKET_ERROR)
 		ErrorHandling("bind() error");
@@ -47,102 +47,115 @@ void Network::HandleEvent(Ball& ball) {
 			sigEventIdx = i;
 			WSAEnumNetworkEvents(
 				hSockArr[sigEventIdx], hEventArr[sigEventIdx], &netEvents);
-			if (netEvents.lNetworkEvents & FD_ACCEPT)
-			{
-				if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0)
-				{
-					puts("Accept Error");
-					break;
-				}
-				clntAdrLen = sizeof(clntAdr);
-				hClntSock = accept(
-					hSockArr[sigEventIdx], (SOCKADDR*)&clntAdr, &clntAdrLen);
-				newEvent = WSACreateEvent();
-				WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
-				hEventArr[numOfClntSock] = newEvent;
-				hSockArr[numOfClntSock] = hClntSock;
-
-				char p[1];
-				p[0] = '0' + numOfClntSock;
-				send(hSockArr[numOfClntSock], p, 1, 0);
-				numOfClntSock++;
-				puts("connected new client...");
-			}
-
-			if (netEvents.lNetworkEvents & FD_READ)
-			{
-				if (netEvents.iErrorCode[FD_READ_BIT] != 0)
-				{
-					puts("Read Error");
-					break;
-				}
-
-				recv(hSockArr[sigEventIdx], buf, 3, 0);
-
-				int recvValue = 0;
-				for (int i = 0; i < 3; i++)
-				{
-					recvValue = recvValue * 10 + (buf[i] - '0');
-				}
-				pos[sigEventIdx] = recvValue;
-
-				int enemyY = (sigEventIdx == 1) ? pos[2] : pos[1];
-				int ballX = ball.GetX();
-				int ballY = ball.GetY();
-				for (int i = 0; i < 4; i++)
-				{
-					if (i != 3)
-					{
-						buf[2 - i] = '0' + enemyY % 10;
-						enemyY /= 10;
-						buf[9 - i] = '0' + ballY % 10;
-						ballY /= 10;
-					}
-					buf[6 - i] = '0' + ballX % 10;
-					ballX /= 10;
-				}
-				buf[10] = '0' + ball.GetLeftScore();
-				buf[11] = '0' + ball.GetRightScore();
-				buf[12] = (ball.IsGameOver()) ? '1' : '0';
-				send(hSockArr[sigEventIdx], buf, 12, 0);
-			}
-
-			if (netEvents.lNetworkEvents & FD_CLOSE)
-			{
-				if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
-				{
-					std::cout << "Close Error" << std::endl;
-					break;
-				}
-				WSACloseEvent(hEventArr[sigEventIdx]);
-				closesocket(hSockArr[sigEventIdx]);
-
-				std::cout << sigEventIdx << "Client Closed" << std::endl;
-				numOfClntSock--;
-				CompressSockets(hSockArr, sigEventIdx, numOfClntSock);
-				CompressEvents(hEventArr, sigEventIdx, numOfClntSock);
-			}
+			if (EventAccept(sigEventIdx) || EventRead(sigEventIdx, ball) || EventClose(sigEventIdx))
+				break;
 		}
+	}
+}
+
+int Network::EventAccept(int sigEventIdx)
+{
+	if (netEvents.lNetworkEvents & FD_ACCEPT)
+	{
+		if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0)
+		{
+			std::cout << "Accept Error" << std::endl;
+			return 1;
+		}
+		clntAdrLen = sizeof(clntAdr);
+		hClntSock = accept(
+			hSockArr[sigEventIdx], (SOCKADDR*)&clntAdr, &clntAdrLen);
+		newEvent = WSACreateEvent();
+		WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
+
+		hEventArr[numOfClntSock] = newEvent;
+		hSockArr[numOfClntSock] = hClntSock;
+
+		char p[1];
+		p[0] = '0' + numOfClntSock;
+		send(hSockArr[numOfClntSock], p, 1, 0);
+		numOfClntSock++;
+		std::cout << "connected new client..." << std::endl;
+		return 0;
+	}
+}
+
+int Network::EventRead(int sigEventIdx, Ball& ball)
+{
+	if (netEvents.lNetworkEvents & FD_READ)
+	{
+		if (netEvents.iErrorCode[FD_READ_BIT] != 0)
+		{
+			std::cout << "Read Error" << std::endl;
+			return 1;
+		}
+
+		recv(hSockArr[sigEventIdx], buf, 3, 0);
+
+		int recvValue = 0;
+		for (int i = 0; i < 3; i++)
+		{
+			recvValue = recvValue * 10 + (buf[i] - '0');
+		}
+		pos[sigEventIdx] = recvValue;
+
+		int enemyY = (sigEventIdx == 1) ? pos[2] : pos[1];
+		int ballX = ball.GetX();
+		int ballY = ball.GetY();
+		for (int i = 0; i < 4; i++)
+		{
+			if (i != 3)
+			{
+				buf[2 - i] = '0' + enemyY % 10;
+				enemyY /= 10;
+				buf[9 - i] = '0' + ballY % 10;
+				ballY /= 10;
+			}
+			buf[6 - i] = '0' + ballX % 10;
+			ballX /= 10;
+		}
+		buf[10] = '0' + ball.GetLeftScore();
+		buf[11] = '0' + ball.GetRightScore();
+		buf[12] = (ball.IsGameOver()) ? '1' : '0';
+		send(hSockArr[sigEventIdx], buf, 12, 0);
+		return 0;
+	}
+}
+
+int Network::EventClose(int sigEventIdx)
+{
+	if (netEvents.lNetworkEvents & FD_CLOSE)
+	{
+		if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
+		{
+			std::cout << "Close Error" << std::endl;
+			return 1;
+		}
+		WSACloseEvent(hEventArr[sigEventIdx]);
+		closesocket(hSockArr[sigEventIdx]);
+
+		std::cout << "Client " << sigEventIdx << " Closed" << std::endl;
+		numOfClntSock--;
+		CompressSockets(hSockArr, sigEventIdx, numOfClntSock);
+		CompressEvents(hEventArr, sigEventIdx, numOfClntSock);
+		return 0;
 	}
 }
 
 void Network::CompressSockets(SOCKET hSockArr[], int idx, int total)
 {
-	int i;
-	for (i = idx; i < total; i++)
+	for (int i = idx; i < total; i++)
 		hSockArr[i] = hSockArr[i + 1];
 }
 void Network::CompressEvents(WSAEVENT hEventArr[], int idx, int total)
 {
-	int i;
-	for (i = idx; i < total; i++)
+	for (int i = idx; i < total; i++)
 		hEventArr[i] = hEventArr[i + 1];
 }
 void Network::ErrorHandling(const char* buf)
 {
-	fputs(buf, stderr);
-	fputc('\n', stderr);
+	std::cerr << buf << std::endl;
 	exit(1);
 }
 

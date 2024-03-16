@@ -4,6 +4,7 @@
 int main() {
     Network network;
     Ball ball;
+
     while (1)
     {
         network.HandleEvent(ball);

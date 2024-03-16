@@ -4,8 +4,8 @@
 Ball::Ball()
 {
     radius = 20;
-    x = screen_width / 2;
-    y = screen_height / 2;
+    x = kScreenWidth / 2;
+    y = kScreenHeight / 2;
     speed_x = 3;
     speed_y = 3;
 }
@@ -22,7 +22,7 @@ void Ball::Update(float posY1, float posY2)
     x += speed_x;
     y += speed_y;
 
-    if (y + radius >= screen_height || y - radius <= 0)
+    if (y + radius >= kScreenHeight || y - radius <= 0)
     {
         speed_y *= -1;
     }
@@ -30,7 +30,7 @@ void Ball::Update(float posY1, float posY2)
     {
         speed_x *= -1;
     }
-    if (CheckCollisionCircleRec(Vector2{ (float)x, (float)y }, (float)radius, Rectangle{ (float)screen_width - 25 - 10, posY2, 25, 120 }))
+    if (CheckCollisionCircleRec(Vector2{ (float)x, (float)y }, (float)radius, Rectangle{ (float)kScreenWidth - 25 - 10, posY2, 25, 120 }))
     {
         speed_x *= -1;
     }
@@ -39,7 +39,7 @@ void Ball::Update(float posY1, float posY2)
         leftScore++;
         ResetBall();
     }
-    if (x + radius >= screen_width)
+    if (x + radius >= kScreenWidth)
     {
         rightScore++;
         ResetBall();
@@ -48,8 +48,8 @@ void Ball::Update(float posY1, float posY2)
 
 void Ball::ResetBall()
 {
-    x = screen_width / 2;
-    y = screen_height / 2;
+    x = kScreenWidth / 2;
+    y = kScreenHeight / 2;
 
     int speed_choices[2] = { -1, 1 };
     speed_x *= speed_choices[GetRandomValue(0, 1)];

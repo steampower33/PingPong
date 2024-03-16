@@ -3,8 +3,8 @@
 
 class Ball {
 private:
-    const int screen_width = 1280;
-    const int screen_height = 800;
+    static constexpr int kScreenWidth = 1280;
+    static constexpr int kScreenHeight = 800;
     int x, y;
     int speed_x, speed_y;
     int radius;
