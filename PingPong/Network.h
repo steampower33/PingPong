@@ -6,7 +6,7 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#define BUF_SIZE 100
+#define BUF_SIZE 13
 #define PORT 7999
 #define MAX_PLAYERS 2
 #define SCREEN_WIDTH 1280
@@ -29,14 +29,16 @@ private:
     int strLen, i;
     int posInfo, startIdx;
     int clntAdrLen;
-    char msg[BUF_SIZE];
+    char buf[BUF_SIZE];
     int pos[3] = { 0,0,0 };
 
 public:
     Network();
     ~Network();
-    void HandleEvent();
+    void HandleEvent(Ball& ball);
     void CompressSockets(SOCKET hSockArr[], int idx, int total);
     void CompressEvents(WSAEVENT hEventArr[], int idx, int total);
-    void ErrorHandling(const char* msg);
+    void ErrorHandling(const char* buf);
+    int GetPosY1();
+    int GetPosY2();
 };

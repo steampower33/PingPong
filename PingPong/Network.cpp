@@ -29,7 +29,7 @@ Network::~Network() {
 	WSACleanup();
 }
 
-void Network::HandleEvent() {
+void Network::HandleEvent(Ball& ball) {
 	posInfo = WSAWaitForMultipleEvents(
 		numOfClntSock, hEventArr, FALSE, WSA_INFINITE, FALSE);
 	startIdx = posInfo - WSA_WAIT_EVENT_0;
@@ -77,31 +77,48 @@ void Network::HandleEvent() {
 					puts("Read Error");
 					break;
 				}
-				strLen = recv(hSockArr[sigEventIdx], msg, sizeof(msg), 0);
+
+				recv(hSockArr[sigEventIdx], buf, 3, 0);
+
 				int recvValue = 0;
 				for (int i = 0; i < 3; i++)
-					recvValue = recvValue * 10 + (msg[i] - '0');
+				{
+					recvValue = recvValue * 10 + (buf[i] - '0');
+				}
 				pos[sigEventIdx] = recvValue;
 
-				int sendValue = (sigEventIdx == 1) ? pos[2] : pos[1];
-				for (int i = 0; i < 3; i++)
+				int enemyY = (sigEventIdx == 1) ? pos[2] : pos[1];
+				int ballX = ball.GetX();
+				int ballY = ball.GetY();
+				for (int i = 0; i < 4; i++)
 				{
-					msg[2 - i] = '0' + sendValue % 10;
-					sendValue /= 10;
+					if (i != 3)
+					{
+						buf[2 - i] = '0' + enemyY % 10;
+						enemyY /= 10;
+						buf[9 - i] = '0' + ballY % 10;
+						ballY /= 10;
+					}
+					buf[6 - i] = '0' + ballX % 10;
+					ballX /= 10;
 				}
-				send(hSockArr[sigEventIdx], msg, strLen, 0);
+				buf[10] = '0' + ball.GetLeftScore();
+				buf[11] = '0' + ball.GetRightScore();
+				buf[12] = (ball.IsGameOver()) ? '1' : '0';
+				send(hSockArr[sigEventIdx], buf, 12, 0);
 			}
 
 			if (netEvents.lNetworkEvents & FD_CLOSE)
 			{
 				if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
 				{
-					puts("Close Error");
+					std::cout << "Close Error" << std::endl;
 					break;
 				}
 				WSACloseEvent(hEventArr[sigEventIdx]);
 				closesocket(hSockArr[sigEventIdx]);
 
+				std::cout << sigEventIdx << "Client Closed" << std::endl;
 				numOfClntSock--;
 				CompressSockets(hSockArr, sigEventIdx, numOfClntSock);
 				CompressEvents(hEventArr, sigEventIdx, numOfClntSock);
@@ -122,9 +139,19 @@ void Network::CompressEvents(WSAEVENT hEventArr[], int idx, int total)
 	for (i = idx; i < total; i++)
 		hEventArr[i] = hEventArr[i + 1];
 }
-void Network::ErrorHandling(const char* msg)
+void Network::ErrorHandling(const char* buf)
 {
-	fputs(msg, stderr);
+	fputs(buf, stderr);
 	fputc('\n', stderr);
 	exit(1);
+}
+
+int Network::GetPosY1()
+{
+	return pos[1];
+}
+
+int Network::GetPosY2()
+{
+	return pos[2];
 }

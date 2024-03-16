@@ -24,4 +24,5 @@ public:
     Ball& GetBall();
     Player& GetPlayer();
     Enemy& GetEnemy();
+    void DrawEndText();
 };

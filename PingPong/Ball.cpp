@@ -6,8 +6,8 @@ Ball::Ball()
     radius = 20;
     x = screen_width / 2;
     y = screen_height / 2;
-    speed_x = 7;
-    speed_y = 7;
+    speed_x = 3;
+    speed_y = 3;
 }
 
 Ball::~Ball() {}
@@ -17,31 +17,39 @@ void Ball::Draw()
     DrawCircle(x, y, radius, WHITE);
 }
 
-void Ball::Update()
+void Ball::Update(float posY1, float posY2)
 {
     x += speed_x;
     y += speed_y;
 
-    if (y + radius >= GetScreenHeight() || y - radius <= 0)
+    if (y + radius >= screen_height || y - radius <= 0)
     {
         speed_y *= -1;
     }
-    if (x + radius >= GetScreenWidth()) // Cpu Wins
+    if (CheckCollisionCircleRec(Vector2{ (float)x, (float)y }, (float)radius, Rectangle{ 10, posY1, 25, 120 }))
     {
-        cpu_score++;
-        ResetBall();
+        speed_x *= -1;
+    }
+    if (CheckCollisionCircleRec(Vector2{ (float)x, (float)y }, (float)radius, Rectangle{ (float)screen_width - 25 - 10, posY2, 25, 120 }))
+    {
+        speed_x *= -1;
     }
     if (x - radius <= 0)
     {
-        player_score++;
+        leftScore++;
+        ResetBall();
+    }
+    if (x + radius >= screen_width)
+    {
+        rightScore++;
         ResetBall();
     }
 }
 
 void Ball::ResetBall()
 {
-    x = GetScreenWidth() / 2;
-    y = GetScreenHeight() / 2;
+    x = screen_width / 2;
+    y = screen_height / 2;
 
     int speed_choices[2] = { -1, 1 };
     speed_x *= speed_choices[GetRandomValue(0, 1)];
@@ -93,12 +101,20 @@ int Ball::GetRadius()
     return radius;
 }
 
-int Ball::GetPlayerScore()
+int Ball::GetLeftScore()
 {
-    return player_score;
+    return leftScore;
 }
 
-int Ball::GetCpuScore()
+int Ball::GetRightScore()
 {
-    return cpu_score;
+    return rightScore;
+}
+
+int Ball::IsGameOver()
+{
+    if (leftScore == 1 || rightScore == 1)
+        return 1;
+    else
+        return 0;
 }

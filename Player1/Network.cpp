@@ -22,21 +22,6 @@ Network::Network() {
     std::cout << "Connected to the server!" << std::endl;
 }
 
-void Network::sendData(int playerY, Ball& ball) {
-    char buffer[4];
-
-    for (int i = 0; i < 4; i++)
-    {
-        if (i != 3) {
-            buffer[2 - i] = '0' + playerY % 10;
-            playerY /= 10;
-        }
-    }
-    //buffer[3] = '0' + ball.GetCollisionDetected();
-
-    send(clientSocket, buffer, 3, 0);
-}
-
 int Network::recvPositionData(int dataSize) {
     bytesReceived = recv(clientSocket, buffer, dataSize, 0);
     if (bytesReceived <= 0) {
@@ -46,6 +31,19 @@ int Network::recvPositionData(int dataSize) {
 
     int position = buffer[0] - '0';
     return position;
+}
+
+void Network::sendData(int playerY, Ball& ball) {
+    char buffer[3];
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (i != 3) {
+            buffer[2 - i] = '0' + playerY % 10;
+            playerY /= 10;
+        }
+    }
+    send(clientSocket, buffer, 3, 0);
 }
 
 void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
@@ -61,14 +59,15 @@ void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
     for (int i = 0; i < 4; i++) {
         if (i != 3) {
             enemyY = enemyY * 10 + (buffer[i] - '0');
-            //ballY = ballY * 10 + (buffer[7 + i] - '0');
+            ballY = ballY * 10 + (buffer[7 + i] - '0');
         }
-        //ballX = ballX * 10 + (buffer[3 + i] - '0');
+        ballX = ballX * 10 + (buffer[3 + i] - '0');
     }
     enemy.SetY(enemyY);
-    //ball.SetX(ballX);
-    //ball.SetY(ballY);
-    std::cout << "enemyY: " << enemyY << std::endl;
+    ball.SetX(ballX);
+    ball.SetY(ballY);
+    ball.SetLeftScore(buffer[10] - '0');
+    ball.SetRightScore(buffer[11] - '0');
 }
 
 Network::~Network() {

@@ -8,17 +8,14 @@ private:
     float x, y;
     int speed_x, speed_y;
     int radius;
-    int player_score = 0;
-    int cpu_score = 0;
-    int isCollisionDetected;
+    int leftScore = 0;
+    int rightScore = 0;
     Ball(const Ball& other);
     Ball& operator=(const Ball& other);
 public:
     Ball();
     ~Ball();
     void Draw();
-    void Update();
-    void ResetBall();
     float GetX();
     void SetX(int num);
     float GetY();
@@ -28,8 +25,9 @@ public:
     int GetSpeedY();
     void SetSpeedY(int num);
     int GetRadius();
-    int GetPlayerScore();
-    int GetCpuScore();
-    void SetCollisionDetected(int detected);
-    int GetCollisionDetected();
+    int GetLeftScore();
+    void SetLeftScore(int score);
+    int GetRightScore();
+    void SetRightScore(int score);
+    int IsGameOver();
 };

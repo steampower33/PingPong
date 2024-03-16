@@ -14,22 +14,8 @@ void Game::DrawGame()
     BeginDrawing();
 
     // Updating
-    ball.Update();
     enemy.Update(enemy.GetY());
     player.Update();
-
-    ball.SetCollisionDetected(0);
-    // Checking for collisions
-    if (CheckCollisionCircleRec(Vector2{ ball.GetX(), ball.GetY() }, ball.GetRadius(), Rectangle{ player.GetX(), player.GetY(), player.GetWidth(), player.GetHeight() }))
-    {
-        ball.SetSpeedX(ball.GetSpeedX() * -1);
-        ball.SetCollisionDetected(1);
-    }
-    if (CheckCollisionCircleRec(Vector2{ ball.GetX(), ball.GetY() }, ball.GetRadius(), Rectangle{ enemy.GetX(), enemy.GetY(), enemy.GetWidth(), enemy.GetHeight() }))
-    {
-        ball.SetSpeedX(ball.GetSpeedX() * -1);
-        ball.SetCollisionDetected(1);
-    }
 
     // Drawing
     ClearBackground(BLACK);
@@ -41,8 +27,8 @@ void Game::DrawGame()
     player.Draw();
     enemy.Draw();
 
-    DrawText(TextFormat("%i", ball.GetCpuScore()), screen_width / 4 - 20, 20, 80, WHITE);
-    DrawText(TextFormat("%i", ball.GetPlayerScore()), 3 * screen_width / 4 - 20, 20, 80, WHITE);
+    DrawText(TextFormat("%i", ball.GetLeftScore()), screen_width / 4 - 20, 20, 80, WHITE);
+    DrawText(TextFormat("%i", ball.GetRightScore()), 3 * screen_width / 4 - 20, 20, 80, WHITE);
     EndDrawing();
 }
 
@@ -66,7 +52,14 @@ Enemy& Game::GetEnemy()
     return enemy;
 }
 
-
 Game::~Game() {
     CloseWindow();
+}
+
+void Game::DrawEndText()
+{
+    BeginDrawing();
+    DrawText("Game is Over", screen_width / 4, screen_height / 2 - 50, 100, WHITE);
+    EndDrawing();
+    WaitTime(3);
 }
