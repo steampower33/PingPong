@@ -1,14 +1,7 @@
 #include "Ball.h"
 #include <raylib.h>
 
-Ball::Ball()
-{
-    radius = 20;
-    x = kScreenWidth / 2;
-    y = kScreenHeight / 2;
-    speed_x = 3;
-    speed_y = 3;
-}
+Ball::Ball() : x(kScreenWidth / 2), y(kScreenHeight / 2), radius(20), speed_x(3), speed_y(3), left_score(0), right_score(0) {}
 
 Ball::~Ball() {}
 
@@ -36,12 +29,12 @@ void Ball::Update(float posY1, float posY2)
     }
     if (x - radius <= 0)
     {
-        leftScore++;
+        left_score++;
         ResetBall();
     }
     if (x + radius >= kScreenWidth)
     {
-        rightScore++;
+        right_score++;
         ResetBall();
     }
 }
@@ -103,17 +96,17 @@ int Ball::GetRadius()
 
 int Ball::GetLeftScore()
 {
-    return leftScore;
+    return left_score;
 }
 
 int Ball::GetRightScore()
 {
-    return rightScore;
+    return right_score;
 }
 
 int Ball::IsGameOver()
 {
-    if (leftScore == 3 || rightScore == 3)
+    if (left_score == 3 || right_score == 3)
         return 1;
     else
         return 0;

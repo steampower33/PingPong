@@ -8,8 +8,8 @@ private:
     int x, y;
     int speed_x, speed_y;
     int radius;
-    int leftScore = 0;
-    int rightScore = 0;
+    int left_score;
+    int right_score;
     Ball(const Ball& other);
     Ball& operator=(const Ball& other);
 public:
