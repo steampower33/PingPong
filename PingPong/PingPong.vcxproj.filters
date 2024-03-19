@@ -18,18 +18,24 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
+    <ClCompile Include="NetworkAsyncNotification.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Ball.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Network.h">
+    <ClInclude Include="NetworkAsyncNotification.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Ball.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
