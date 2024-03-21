@@ -57,7 +57,7 @@ void Ball::SetRightScore(int score)
 
 int Ball::IsGameOver()
 {
-    if (leftScore == 3 || rightScore == 3)
+    if (leftScore == 5 || rightScore == 5)
         return 1;
     else
         return 0;

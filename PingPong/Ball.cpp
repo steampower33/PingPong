@@ -106,7 +106,7 @@ int Ball::GetRightScore()
 
 int Ball::IsGameOver()
 {
-    if (left_score == 3 || right_score == 3)
+    if (left_score == 5 || right_score == 5)
         return 1;
     else
         return 0;
