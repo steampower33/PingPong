@@ -5,11 +5,11 @@ Player::Player() {}
 
 Player::Player(int isLeftRight)
 {
-    if (isLeftRight == 1)
+    if (isLeftRight == 0)
     {
         SetLeftPosition();
     }
-    else if (isLeftRight == 2)
+    else if (isLeftRight == 1)
     {
         SetRightPosition();
     }
@@ -21,7 +21,7 @@ void Player::SetLeftPosition()
     height = 120;
     x = 10;
     y = screen_height / 2 - height / 2;
-    speed = 6;
+    speed = 10;
 }
 
 void Player::SetRightPosition()
@@ -30,7 +30,7 @@ void Player::SetRightPosition()
     height = 120;
     x = screen_width - width - 10;
     y = screen_height / 2 - height / 2;
-    speed = 6;
+    speed = 10;
 }
 
 Player::~Player() {}

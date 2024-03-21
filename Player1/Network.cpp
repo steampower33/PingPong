@@ -1,6 +1,6 @@
 #include "Network.h"
 
-Network::Network() {
+Network::Network() : playerY(340), ballX(0), ballY(0), playerPos(0) {
     // WinSock √ ±‚»≠
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         ErrorHandling("WSAStartup failed.");
@@ -29,20 +29,20 @@ int Network::recvPositionData(int dataSize) {
         ErrorHandling("Connection closed by the server.");
 
     int position = buffer[0] - '0';
+    playerPos = position;
     return position;
 }
 
 void Network::sendData(int playerY, Ball& ball) {
-    char buffer[3];
+    char buffer[4];
 
-    for (int i = 0; i < 4; i++)
+    buffer[0] = '0' + playerPos;
+    for (int i = 0; i < 3; i++)
     {
-        if (i != 3) {
-            buffer[2 - i] = '0' + playerY % 10;
-            playerY /= 10;
-        }
+        buffer[3 - i] = '0' + playerY % 10;
+        playerY /= 10;
     }
-    send(clientSocket, buffer, 3, 0);
+    send(clientSocket, buffer, 4, 0);
 }
 
 void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
@@ -53,6 +53,7 @@ void Network::recvData(int dataSize, Ball& ball, Enemy& enemy) {
     int enemyY = 0;
     int ballX = 0;
     int ballY = 0;
+
     for (int i = 0; i < 4; i++) {
         if (i != 3) {
             enemyY = enemyY * 10 + (buffer[i] - '0');

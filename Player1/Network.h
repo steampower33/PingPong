@@ -15,11 +15,12 @@ private:
     WSADATA wsaData;
     SOCKET clientSocket;
     sockaddr_in serverAddr;
-    char buffer[10];
+    char buffer[12];
     int bytesReceived;
     int playerY;
     int ballX;
     int ballY;
+    int playerPos;
 public:
     Network();
     ~Network();

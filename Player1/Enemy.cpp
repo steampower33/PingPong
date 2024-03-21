@@ -5,11 +5,11 @@ Enemy::Enemy() {}
 
 Enemy::Enemy(int isLeftRight)
 {
-    if (isLeftRight == 2)
+    if (isLeftRight == 1)
     {
         SetLeftPosition();
     }
-    else if (isLeftRight == 1)
+    else if (isLeftRight == 0)
     {
         SetRightPosition();
     }
@@ -21,7 +21,7 @@ void Enemy::SetLeftPosition()
     height = 120;
     x = 10;
     y = screen_height / 2 - height / 2;
-    speed = 6;
+    speed = 10;
 }
 
 void Enemy::SetRightPosition()
@@ -30,7 +30,7 @@ void Enemy::SetRightPosition()
     height = 120;
     x = screen_width - width - 10;
     y = screen_height / 2 - height / 2;
-    speed = 6;
+    speed = 10;
 }
 
 void Enemy::Update(float ball_y)
