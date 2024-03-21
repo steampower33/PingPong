@@ -1,12 +1,7 @@
 #include "Ball.h"
 #include <raylib.h>
 
-Ball::Ball()
-{
-    radius = 20;
-    x = screen_width / 2;
-    y = screen_height / 2;
-}
+Ball::Ball() : radius(20), x(screen_width / 2), y(screen_height / 2), leftScore(0), rightScore(0) {}
 
 Ball::~Ball() {}
 
