@@ -57,7 +57,7 @@ Game::~Game() {
 void Game::DrawEndText()
 {
     BeginDrawing();
-    DrawText("Game is Over", screen_width / 4, screen_height / 2 - 50, 100, WHITE);
+    DrawText("Game Over", screen_width / 3 - 40, screen_height / 2 - 50, 100, WHITE);
     EndDrawing();
     WaitTime(3);
 }
