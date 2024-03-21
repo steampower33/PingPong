@@ -19,10 +19,6 @@ public:
     void SetX(int num);
     float GetY();
     void SetY(int num);
-    int GetSpeedX();
-    void SetSpeedX(int num);
-    int GetSpeedY();
-    void SetSpeedY(int num);
     int GetRadius();
     int GetLeftScore();
     void SetLeftScore(int score);

@@ -30,26 +30,6 @@ void Ball::SetY(int num)
     y = num;
 }
 
-int Ball::GetSpeedX()
-{
-    return speed_x;
-}
-
-void Ball::SetSpeedX(int num)
-{
-    speed_x = num;
-}
-
-int Ball::GetSpeedY()
-{
-    return speed_y;
-}
-
-void Ball::SetSpeedY(int num)
-{
-    speed_y = num;
-}
-
 int Ball::GetRadius()
 {
     return radius;
