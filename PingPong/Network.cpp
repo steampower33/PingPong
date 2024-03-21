@@ -22,7 +22,7 @@ Network::Network() : numOfClntSock(0) {
 	send_buffer_mutex = CreateMutex(NULL, FALSE, NULL);
 	recv_buffer_mutex = CreateMutex(NULL, FALSE, NULL);
 
-	for (int i = 0; i < sysInfo.dwNumberOfProcessors / 8; i++)
+	for (int i = 0; i < 4; i++)
 		_beginthreadex(NULL, 0, EchoThreadMain, (LPVOID)hComPort, 0, NULL);
 
 	hServSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
