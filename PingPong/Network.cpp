@@ -7,21 +7,13 @@ HANDLE Network::ball_mutex;
 HANDLE Network::send_buffer_mutex;
 HANDLE Network::recv_buffer_mutex;
 
-Network::Network() {
-	WSADATA	wsaData;
-	HANDLE hComPort;
-	SYSTEM_INFO sysInfo;
-	LPPER_IO_DATA ioInfo;
-	LPPER_HANDLE_DATA handleInfo;
-	int recvBytes, i, flags = 0;
-
-	SOCKET hServSock;
-	SOCKADDR_IN servAdr;
+Network::Network() : numOfClntSock(0) {
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		ErrorHandling("WSAStartup() error!");
 
 	hComPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
+	
 	GetSystemInfo(&sysInfo);
 
 	// Create Mutex
@@ -30,7 +22,7 @@ Network::Network() {
 	send_buffer_mutex = CreateMutex(NULL, FALSE, NULL);
 	recv_buffer_mutex = CreateMutex(NULL, FALSE, NULL);
 
-	for (i = 0; i < 1; i++)
+	for (int i = 0; i < sysInfo.dwNumberOfProcessors / 2; i++)
 		_beginthreadex(NULL, 0, EchoThreadMain, (LPVOID)hComPort, 0, NULL);
 
 	hServSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -41,35 +33,40 @@ Network::Network() {
 
 	bind(hServSock, (SOCKADDR*)&servAdr, sizeof(servAdr));
 	listen(hServSock, 2);
+}
 
-	int numOfClntSock = 0;
-	while (1)
-	{
-		SOCKET hClntSock;
-		SOCKADDR_IN clntAdr;
-		int addrLen = sizeof(clntAdr);
+void Network::AcceptClient()
+{
+	addrLen = sizeof(clntAdr);
+	hClntSock = accept(hServSock, (SOCKADDR*)&clntAdr, &addrLen);
+}
 
-		hClntSock = accept(hServSock, (SOCKADDR*)&clntAdr, &addrLen);
-		
-		char p[1];
-		p[0] = '0' + numOfClntSock++;
-		send(hClntSock, p, 1, 0);
-		std::cout << p[0] << std::endl;
-		
-		handleInfo = new PER_HANDLE_DATA;
-		handleInfo->hClntSock = hClntSock;
-		memcpy(&(handleInfo->clntAdr), &clntAdr, addrLen);
+void Network::SendPositionToClient()
+{
+	char p[1];
+	p[0] = '0' + numOfClntSock++;
+	send(hClntSock, p, 1, 0);
+}
 
-		CreateIoCompletionPort((HANDLE)hClntSock, hComPort, (ULONG_PTR)handleInfo, 0);
+void Network::ConnectClntSockToCP()
+{
+	handleInfo = new PER_HANDLE_DATA;
+	handleInfo->hClntSock = hClntSock;
+	memcpy(&(handleInfo->clntAdr), &clntAdr, addrLen);
 
-		ioInfo = new PER_IO_DATA;
-		memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
-		ioInfo->wsaBuf.len = 4;
-		ioInfo->wsaBuf.buf = ioInfo->buffer;
-		ioInfo->rwMode = kRead;
-		WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf),
-			1, (LPDWORD)&recvBytes, (LPDWORD)&flags, &(ioInfo->overlapped), NULL);
-	}
+	CreateIoCompletionPort((HANDLE)hClntSock, hComPort, (ULONG_PTR)handleInfo, 0);
+}
+
+void Network::RecvData()
+{
+	ioInfo = new PER_IO_DATA;
+	memset(&(ioInfo->overlapped), 0, sizeof(OVERLAPPED));
+	ioInfo->wsaBuf.len = 4;
+	ioInfo->wsaBuf.buf = ioInfo->buffer;
+	ioInfo->rwMode = kRead;
+	int recvBytes, flags = 0;
+	WSARecv(handleInfo->hClntSock, &(ioInfo->wsaBuf),
+		1, (LPDWORD)&recvBytes, (LPDWORD)&flags, &(ioInfo->overlapped), NULL);
 }
 
 UINT WINAPI Network::EchoThreadMain(LPVOID pComPort)
@@ -167,14 +164,4 @@ void Network::ErrorHandling(const char* buf)
 {
 	std::cerr << buf << std::endl;
 	exit(EXIT_FAILURE);
-}
-
-int Network::GetPosY1()
-{
-	return pos[1];
-}
-
-int Network::GetPosY2()
-{
-	return pos[2];
 }
